@@ -18,6 +18,9 @@ public class Chunk : MonoBehaviour
 
     private World world;
 
+    [SerializeField, Range(0, 15)]
+    private int blockID = 0;
+
     private void Start()
     {
         world = GameObject.Find("World").GetComponent<World>();
@@ -95,7 +98,7 @@ public class Chunk : MonoBehaviour
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 2]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 3]]);
 
-                AddTexture(0);
+                AddTexture(blockID);
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -113,7 +116,7 @@ public class Chunk : MonoBehaviour
     private void AddTexture(int textureID)
     {
         float y = textureID / Voxel.TextureAtlasSizeInBlocks;
-        float x = textureID - (y - Voxel.TextureAtlasSizeInBlocks);
+        float x = textureID - (y * Voxel.TextureAtlasSizeInBlocks);
 
         x *= Voxel.NormalizedBlockTextureSize;
         y *= Voxel.NormalizedBlockTextureSize;
