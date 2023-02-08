@@ -18,9 +18,6 @@ public class Chunk : MonoBehaviour
 
     private World world;
 
-    [SerializeField, Range(0, 15)]
-    private int blockID = 0;
-
     private void Start()
     {
         world = GameObject.Find("World").GetComponent<World>();
@@ -53,7 +50,18 @@ public class Chunk : MonoBehaviour
             {
                 for (int z = 0; z < Voxel.ChunkWidth; z++)
                 {
-                    voxelMap[x, y, z] = 0;
+                    if (y < 1)
+                    {
+                        voxelMap[x, y, z] = 0;
+                    }
+                    else if (y == Voxel.ChunkHeight - 1)
+                    {
+                        voxelMap[x, y, z] = 2;
+                    }
+                    else
+                    {
+                        voxelMap[x, y, z] = 1;
+                    }
                 }
             }
         }
@@ -93,12 +101,14 @@ public class Chunk : MonoBehaviour
         {
             if (!CheckVoxel(position + Voxel.faceChecks[i]))
             {
+                byte blockID = voxelMap[(int)position.x, (int)position.y, (int)position.z];
+
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 0]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 1]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 2]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 3]]);
 
-                AddTexture(blockID);
+                AddTexture(world.GetBlockType[blockID].GetTextureID((byte)i));
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -112,7 +122,6 @@ public class Chunk : MonoBehaviour
         }
     }
 
-    // FIXME: texture does not apply correctly
     private void AddTexture(int textureID)
     {
         float y = textureID / Voxel.TextureAtlasSizeInBlocks;

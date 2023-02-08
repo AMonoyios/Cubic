@@ -532,8 +532,30 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   material: {fileID: 2100000, guid: 7e425ddeb3e144b4eb456cf8d98339c9, type: 2}
   blockTypes:
-  - blockName: TestBlock
+  - blockName: Unbreakable
     isSolid: 1
+    backFaceTextureID: 8
+    frontFaceTextureID: 8
+    topFaceTextureID: 8
+    bottomFaceTextureID: 8
+    leftFaceTextureID: 8
+    rightFaceTextureID: 8
+  - blockName: Stone
+    isSolid: 1
+    backFaceTextureID: 0
+    frontFaceTextureID: 0
+    topFaceTextureID: 0
+    bottomFaceTextureID: 0
+    leftFaceTextureID: 0
+    rightFaceTextureID: 0
+  - blockName: GrassBlock
+    isSolid: 1
+    backFaceTextureID: 2
+    frontFaceTextureID: 2
+    topFaceTextureID: 7
+    bottomFaceTextureID: 1
+    leftFaceTextureID: 2
+    rightFaceTextureID: 2
 --- !u!4 &1335757326
 Transform:
   m_ObjectHideFlags: 0

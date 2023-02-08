@@ -28,6 +28,9 @@ public static class Voxel
 
     public static readonly int[,] Tris = new int[6,4]
     {
+        // Offset order of duplicate vertices for shared tris
+        // 0, 1, 2, 2, 1, 3
+
         {0, 3, 1, 2}, // Back
         {5, 6, 4, 7}, // Front
         {3, 7, 2, 6}, // Top
