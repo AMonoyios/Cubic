@@ -1,13 +1,17 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-public class Chunk : MonoBehaviour
+public class Chunk
 {
-    private MeshFilter meshFilter;
+    public ChunkCoords coords;
+
+    private readonly GameObject chunk;
+
+    private readonly MeshFilter meshFilter;
+    private readonly MeshRenderer meshRenderer;
 
     private int vertexIndex = 0;
     private readonly List<Vector3> vertices = new();
@@ -16,30 +20,27 @@ public class Chunk : MonoBehaviour
 
     private readonly byte[,,] voxelMap = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
 
-    private World world;
+    private readonly World world;
 
-    private void Start()
+    public Chunk(ChunkCoords coords, World world)
     {
-        world = GameObject.Find("World").GetComponent<World>();
+        this.coords = coords;
+        this.world = world;
 
-        StartCoroutine(Generate());
-    }
+        chunk = new GameObject();
+        meshFilter = chunk.AddComponent<MeshFilter>();
+        meshRenderer = chunk.AddComponent<MeshRenderer>();
 
-    private IEnumerator Generate()
-    {
-        DateTime startTime = DateTime.Now;
+        meshRenderer.material = world.GetBlocksMaterial;
 
-        meshFilter = GetComponent<MeshFilter>();
+        chunk.transform.SetParent(world.transform);
+
+        chunk.transform.position = new(coords.X * Voxel.ChunkWidth, 0.0f, coords.Z * Voxel.ChunkWidth);
+        chunk.name = $"Chunk {coords.X}, {coords.Z}";
 
         PopulateVoxelMap();
         CalculateMeshData();
         CreateMesh();
-
-        DateTime endTime = DateTime.Now;
-
-        Debug.Log($"Generation took {endTime.Subtract(startTime).Milliseconds} milliseconds.");
-
-        yield return null;
     }
 
     private void PopulateVoxelMap()
@@ -52,15 +53,15 @@ public class Chunk : MonoBehaviour
                 {
                     if (y < 1)
                     {
-                        voxelMap[x, y, z] = 0;
+                        voxelMap[x, y, z] = 1;
                     }
                     else if (y == Voxel.ChunkHeight - 1)
                     {
-                        voxelMap[x, y, z] = 2;
+                        voxelMap[x, y, z] = 3;
                     }
                     else
                     {
-                        voxelMap[x, y, z] = 1;
+                        voxelMap[x, y, z] = 2;
                     }
                 }
             }
@@ -150,5 +151,20 @@ public class Chunk : MonoBehaviour
         mesh.RecalculateNormals();
 
         meshFilter.mesh = mesh;
+    }
+}
+
+/// <summary>
+///     Chunk position within the chunks map
+/// </summary>
+public class ChunkCoords
+{
+    public int X { get; }
+    public int Z { get; }
+
+    public ChunkCoords(int x, int z)
+    {
+        X = x;
+        Z = z;
     }
 }

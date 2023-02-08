@@ -5,11 +5,35 @@ using UnityEngine;
 public class World : MonoBehaviour
 {
     [SerializeField]
-    private Material material;
+    private Material blocksMaterial;
+    public Material GetBlocksMaterial { get { return blocksMaterial; } }
 
     [SerializeField]
     private BlockType[] blockTypes;
     public BlockType[] GetBlockType { get { return blockTypes; } }
+
+    private void Start()
+    {
+        System.DateTime startTime = System.DateTime.Now;
+
+        StartCoroutine(GenerateWorld());
+
+        System.DateTime endTime = System.DateTime.Now;
+        Debug.Log($"Generation took: {endTime.Subtract(startTime).Milliseconds} milliseconds");
+    }
+
+    private IEnumerator GenerateWorld()
+    {
+        for (int x = 0; x < Voxel.WorldSizeInChunks; x++)
+        {
+            for (int z = 0; z < Voxel.WorldSizeInChunks; z++)
+            {
+                _ = new Chunk(new(x, z), this);
+            }
+        }
+
+        yield return null;
+    }
 }
 
 [System.Serializable]
