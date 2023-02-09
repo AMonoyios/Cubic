@@ -4,7 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
-public class Chunk
+public sealed class Chunk
 {
     public ChunkCoords coords;
 
@@ -180,5 +180,21 @@ public class ChunkCoords
     {
         X = x;
         Z = z;
+    }
+
+    public bool Equals(ChunkCoords other)
+    {
+        if (other == null)
+        {
+            return false;
+        }
+        else if (other.X == X && other.Z == Z)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
 }
