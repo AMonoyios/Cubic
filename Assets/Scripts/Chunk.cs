@@ -51,18 +51,7 @@ public class Chunk
             {
                 for (int z = 0; z < Voxel.ChunkWidth; z++)
                 {
-                    if (y < 1)
-                    {
-                        voxelMap[x, y, z] = 1;
-                    }
-                    else if (y == Voxel.ChunkHeight - 1)
-                    {
-                        voxelMap[x, y, z] = 3;
-                    }
-                    else
-                    {
-                        voxelMap[x, y, z] = 2;
-                    }
+                    voxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z) + Position);
                 }
             }
         }
@@ -82,15 +71,40 @@ public class Chunk
         }
     }
 
+    public bool IsActive
+    {
+        get
+        {
+            return chunk.activeSelf;
+        }
+        set
+        {
+            chunk.SetActive(value);
+        }
+    }
+
+    public Vector3 Position
+    {
+        get
+        {
+            return chunk.transform.position;
+        }
+    }
+
+    private bool IsVoxelInChunk(int x, int y, int z)
+    {
+        return x >= 0 && x <= Voxel.ChunkWidth - 1 && y >= 0 && y <= Voxel.ChunkHeight - 1 && z >= 0 && z <= Voxel.ChunkWidth - 1;
+    }
+
     private bool CheckVoxel(Vector3 position)
     {
         int x = Mathf.FloorToInt(position.x);
         int y = Mathf.FloorToInt(position.y);
         int z = Mathf.FloorToInt(position.z);
 
-        if (x < 0 || x > Voxel.ChunkWidth - 1 || y < 0 || y > Voxel.ChunkHeight - 1 || z < 0 || z > Voxel.ChunkWidth - 1)
+        if (!IsVoxelInChunk(x, y, z))
         {
-            return false;
+            return world.GetBlockType[world.GetVoxel(position + Position)].isSolid;
         }
 
         return world.GetBlockType[voxelMap[x, y, z]].isSolid;

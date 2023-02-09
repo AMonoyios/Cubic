@@ -3,9 +3,18 @@ using UnityEngine;
 public static class Voxel
 {
     public static readonly int ChunkWidth = 5;
-    public static readonly int ChunkHeight = 10;
+    public static readonly int ChunkHeight = 15;
+    public static readonly int WorldSizeInChunks = 100;
 
-    public static readonly int WorldSizeInChunks = 4;
+    public static int WorldSizeInVoxels
+    {
+        get
+        {
+            return WorldSizeInChunks * ChunkWidth;
+        }
+    }
+
+    public static readonly int ViewDistanceInChunks = 5;
 
     public static readonly int TextureAtlasSizeInBlocks = 4;
     public static float NormalizedBlockTextureSize

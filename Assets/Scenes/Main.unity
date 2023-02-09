@@ -434,6 +434,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5041d24b5705073468b01050e4552986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 330585546}
   blocksMaterial: {fileID: 2100000, guid: 7e425ddeb3e144b4eb456cf8d98339c9, type: 2}
   blockTypes:
   - blockName: Air
