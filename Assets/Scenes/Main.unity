@@ -435,6 +435,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 330585546}
+  seed: 
   blocksMaterial: {fileID: 2100000, guid: 7e425ddeb3e144b4eb456cf8d98339c9, type: 2}
   blockTypes:
   - blockName: Air
@@ -469,6 +470,14 @@ MonoBehaviour:
     bottomFaceTextureID: 1
     leftFaceTextureID: 2
     rightFaceTextureID: 2
+  - blockName: Gravel
+    isSolid: 1
+    backFaceTextureID: 10
+    frontFaceTextureID: 10
+    topFaceTextureID: 10
+    bottomFaceTextureID: 10
+    leftFaceTextureID: 10
+    rightFaceTextureID: 10
 --- !u!4 &1335757326
 Transform:
   m_ObjectHideFlags: 0

@@ -8,6 +8,9 @@ public sealed class World : MonoBehaviour
     private Transform player;
 
     [SerializeField]
+    private string seed;
+
+    [SerializeField]
     private Material blocksMaterial;
     public Material GetBlocksMaterial { get { return blocksMaterial; } }
 
@@ -17,7 +20,7 @@ public sealed class World : MonoBehaviour
 
     private readonly Chunk[,] chunks = new Chunk[Voxel.WorldSizeInChunks, Voxel.WorldSizeInChunks];
 
-    private List<ChunkCoords> activeChunks = new();
+    private readonly List<ChunkCoords> activeChunks = new();
     private ChunkCoords playerCurrentChunkCoord;
     private ChunkCoords playerLastChunkCoord;
 
@@ -26,6 +29,12 @@ public sealed class World : MonoBehaviour
     private void Start()
     {
         spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight + 2, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
+
+        if (string.IsNullOrWhiteSpace(seed))
+        {
+            seed = Noise.GetStringNoise();
+        }
+        Random.InitState(seed.GetHashCode());
 
         System.DateTime startTime = System.DateTime.Now;
         GenerateWorld();
@@ -121,7 +130,15 @@ public sealed class World : MonoBehaviour
         }
         else if (position.y == Voxel.ChunkHeight - 1)
         {
-            return 3;
+            float temp = Noise.Get2DPerlin(new(position.x, position.z), 0, 0.1f);
+            if (temp < 0.5f)
+            {
+                return 4;
+            }
+            else
+            {
+                return 3;
+            }
         }
         else
         {
