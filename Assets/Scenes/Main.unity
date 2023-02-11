@@ -436,6 +436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 330585546}
   seed: 
+  biomes: {fileID: 11400000, guid: 6eb051512e1e3f044b7296286067efa8, type: 2}
   blocksMaterial: {fileID: 2100000, guid: 7e425ddeb3e144b4eb456cf8d98339c9, type: 2}
   blockTypes:
   - blockName: Air
@@ -446,14 +447,6 @@ MonoBehaviour:
     bottomFaceTextureID: 0
     leftFaceTextureID: 0
     rightFaceTextureID: 0
-  - blockName: Unbreakable
-    isSolid: 1
-    backFaceTextureID: 8
-    frontFaceTextureID: 8
-    topFaceTextureID: 8
-    bottomFaceTextureID: 8
-    leftFaceTextureID: 8
-    rightFaceTextureID: 8
   - blockName: Stone
     isSolid: 1
     backFaceTextureID: 0
@@ -462,7 +455,15 @@ MonoBehaviour:
     bottomFaceTextureID: 0
     leftFaceTextureID: 0
     rightFaceTextureID: 0
-  - blockName: GrassBlock
+  - blockName: Dirt
+    isSolid: 1
+    backFaceTextureID: 1
+    frontFaceTextureID: 1
+    topFaceTextureID: 1
+    bottomFaceTextureID: 1
+    leftFaceTextureID: 1
+    rightFaceTextureID: 1
+  - blockName: Grass
     isSolid: 1
     backFaceTextureID: 2
     frontFaceTextureID: 2
@@ -470,6 +471,46 @@ MonoBehaviour:
     bottomFaceTextureID: 1
     leftFaceTextureID: 2
     rightFaceTextureID: 2
+  - blockName: CoalOre
+    isSolid: 1
+    backFaceTextureID: 3
+    frontFaceTextureID: 3
+    topFaceTextureID: 3
+    bottomFaceTextureID: 3
+    leftFaceTextureID: 3
+    rightFaceTextureID: 3
+  - blockName: Planks
+    isSolid: 1
+    backFaceTextureID: 4
+    frontFaceTextureID: 4
+    topFaceTextureID: 4
+    bottomFaceTextureID: 4
+    leftFaceTextureID: 4
+    rightFaceTextureID: 4
+  - blockName: Log
+    isSolid: 1
+    backFaceTextureID: 5
+    frontFaceTextureID: 5
+    topFaceTextureID: 6
+    bottomFaceTextureID: 6
+    leftFaceTextureID: 5
+    rightFaceTextureID: 5
+  - blockName: Unbreakable
+    isSolid: 1
+    backFaceTextureID: 8
+    frontFaceTextureID: 8
+    topFaceTextureID: 8
+    bottomFaceTextureID: 8
+    leftFaceTextureID: 8
+    rightFaceTextureID: 8
+  - blockName: Sand
+    isSolid: 1
+    backFaceTextureID: 9
+    frontFaceTextureID: 9
+    topFaceTextureID: 9
+    bottomFaceTextureID: 9
+    leftFaceTextureID: 9
+    rightFaceTextureID: 9
   - blockName: Gravel
     isSolid: 1
     backFaceTextureID: 10
@@ -478,6 +519,38 @@ MonoBehaviour:
     bottomFaceTextureID: 10
     leftFaceTextureID: 10
     rightFaceTextureID: 10
+  - blockName: Glass
+    isSolid: 1
+    backFaceTextureID: 11
+    frontFaceTextureID: 11
+    topFaceTextureID: 11
+    bottomFaceTextureID: 11
+    leftFaceTextureID: 11
+    rightFaceTextureID: 11
+  - blockName: FurnaceOff
+    isSolid: 1
+    backFaceTextureID: 13
+    frontFaceTextureID: 12
+    topFaceTextureID: 15
+    bottomFaceTextureID: 15
+    leftFaceTextureID: 13
+    rightFaceTextureID: 13
+  - blockName: FurnaceOn
+    isSolid: 1
+    backFaceTextureID: 13
+    frontFaceTextureID: 14
+    topFaceTextureID: 15
+    bottomFaceTextureID: 15
+    leftFaceTextureID: 13
+    rightFaceTextureID: 13
+  - blockName: Cobblestone
+    isSolid: 1
+    backFaceTextureID: 15
+    frontFaceTextureID: 15
+    topFaceTextureID: 15
+    bottomFaceTextureID: 15
+    leftFaceTextureID: 15
+    rightFaceTextureID: 15
 --- !u!4 &1335757326
 Transform:
   m_ObjectHideFlags: 0

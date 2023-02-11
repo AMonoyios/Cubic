@@ -11,6 +11,9 @@ public sealed class World : MonoBehaviour
     private string seed;
 
     [SerializeField]
+    private BiomeProperties biomes;
+
+    [SerializeField]
     private Material blocksMaterial;
     public Material GetBlocksMaterial { get { return blocksMaterial; } }
 
@@ -119,31 +122,57 @@ public sealed class World : MonoBehaviour
 
     public byte GetVoxel(Vector3 position)
     {
+        int yPos = Mathf.FloorToInt(position.y);
+
+        // Default pass
         if (!IsVoxelInWorld(position))
         {
-            return 0;
+            return GetBlockIdByName("Air");
         }
 
-        if (position.y < 1)
+        if (yPos == 0)
         {
-            return 1;
+            return GetBlockIdByName("Unbreakable");
         }
-        else if (position.y == Voxel.ChunkHeight - 1)
+
+        // First pass
+        int terrainHeight = Mathf.FloorToInt(biomes.terrainHeight * Noise.Get2DPerlin(new(position.x, position.z), 0, biomes.terrainScale)) + biomes.solidGroundHeight;
+
+        byte voxel;
+
+        if (yPos == terrainHeight)
         {
-            float temp = Noise.Get2DPerlin(new(position.x, position.z), 0, 0.1f);
-            if (temp < 0.5f)
-            {
-                return 4;
-            }
-            else
-            {
-                return 3;
-            }
+            voxel = GetBlockIdByName("Grass");
+        }
+        else if (yPos < terrainHeight && yPos > terrainHeight - 4)
+        {
+            voxel = GetBlockIdByName("Dirt");
+        }
+        else if (yPos > terrainHeight)
+        {
+            return GetBlockIdByName("Air");
         }
         else
         {
-            return 2;
+            voxel = GetBlockIdByName("Stone");
         }
+
+        // Second pass
+        if (voxel == GetBlockIdByName("Stone"))
+        {
+            foreach (Lode lode in biomes.lodes)
+            {
+                if (yPos > lode.height.x && yPos < lode.height.y)
+                {
+                    if (Noise.Get3DPerlin(position, lode.noiseOffset, lode.scale, lode.threshold))
+                    {
+                        voxel = lode.blockID;
+                    }
+                }
+            }
+        }
+
+        return voxel;
     }
 
     private void CreateNewChunk(int x, int z)
@@ -160,5 +189,19 @@ public sealed class World : MonoBehaviour
     private bool IsVoxelInWorld(Vector3 position)
     {
         return position.x >= 0 && position.x < Voxel.WorldSizeInVoxels && position.y >= 0 && position.y < Voxel.ChunkHeight && position.z >= 0 && position.z < Voxel.WorldSizeInVoxels;
+    }
+
+    public byte GetBlockIdByName(string blockName)
+    {
+        for (byte i = 0; i < blockTypes.Length; i++)
+        {
+            if (blockName == blockTypes[i].blockName)
+            {
+                return i;
+            }
+        }
+
+        Debug.LogWarning($"Block: {blockName} was not found in the block types database, returning block with ID 0");
+        return 0;
     }
 }

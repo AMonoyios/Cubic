@@ -65,7 +65,10 @@ public sealed class Chunk
             {
                 for (int z = 0; z < Voxel.ChunkWidth; z++)
                 {
-                    AddVoxelToChunk(new(x, y, z));
+                    if (world.GetBlockType[voxelMap[x, y, z]].isSolid)
+                    {
+                        AddVoxelToChunk(new(x, y, z));
+                    }
                 }
             }
         }
@@ -171,7 +174,7 @@ public sealed class Chunk
 /// <summary>
 ///     Chunk position within the chunks map
 /// </summary>
-public class ChunkCoords
+public sealed class ChunkCoords
 {
     public int X { get; }
     public int Z { get; }
