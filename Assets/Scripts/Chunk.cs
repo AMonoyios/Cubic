@@ -13,14 +13,13 @@ public sealed class Chunk
     private readonly MeshFilter meshFilter;
     private readonly MeshRenderer meshRenderer;
 
-    private int vertexIndex = 0;
+    private int vertexIndex;
     private readonly List<Vector3> vertices = new();
     private readonly List<int> triangles = new();
     private readonly List<Vector2> uvs = new();
+    public byte[,,] VoxelMap { get; } = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
 
-    private readonly byte[,,] voxelMap = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
-
-    private readonly World world;
+    private World world;
 
     public Chunk(ChunkCoords coords, World world)
     {
@@ -51,7 +50,7 @@ public sealed class Chunk
             {
                 for (int z = 0; z < Voxel.ChunkWidth; z++)
                 {
-                    voxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z) + Position);
+                    VoxelMap[x, y, z] = world.GetVoxel(new Vector3(x, y, z) + Position);
                 }
             }
         }
@@ -65,7 +64,7 @@ public sealed class Chunk
             {
                 for (int z = 0; z < Voxel.ChunkWidth; z++)
                 {
-                    if (world.GetBlockType[voxelMap[x, y, z]].isSolid)
+                    if (world.GetBlockType[VoxelMap[x, y, z]].isSolid)
                     {
                         AddVoxelToChunk(new(x, y, z));
                     }
@@ -110,7 +109,7 @@ public sealed class Chunk
             return world.GetBlockType[world.GetVoxel(position + Position)].isSolid;
         }
 
-        return world.GetBlockType[voxelMap[x, y, z]].isSolid;
+        return world.GetBlockType[VoxelMap[x, y, z]].isSolid;
     }
 
     private void AddVoxelToChunk(Vector3 position)
@@ -119,7 +118,7 @@ public sealed class Chunk
         {
             if (!CheckVoxel(position + Voxel.faceChecks[i]))
             {
-                byte blockID = voxelMap[(int)position.x, (int)position.y, (int)position.z];
+                byte blockID = VoxelMap[(int)position.x, (int)position.y, (int)position.z];
 
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 0]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 1]]);

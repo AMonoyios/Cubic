@@ -1,22 +1,20 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
 
 [CreateAssetMenu(fileName = "BiomeProperties", menuName = "Cubic/BiomeProperties")]
-public class BiomeProperties : ScriptableObject
+public sealed class BiomeProperties : ScriptableObject
 {
     public string biomeName;
     public int solidGroundHeight;
     public int terrainHeight;
     public float terrainScale;
-    public Lode[] lodes;
+    public Vein[] veins;
 }
 
 [System.Serializable]
-public class Lode
+public class Vein
 {
-    public string nodeName;
+    public string veinName;
     public byte blockID;
     [MinMaxSlider(1, 255)]
     public Vector2Int height = new(1, 255);

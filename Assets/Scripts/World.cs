@@ -31,7 +31,7 @@ public sealed class World : MonoBehaviour
 
     private void Start()
     {
-        spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight + 2, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
+        spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight - 50.0f, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
 
         if (string.IsNullOrWhiteSpace(seed))
         {
@@ -120,6 +120,23 @@ public sealed class World : MonoBehaviour
         }
     }
 
+    public bool CheckForVoxel(float xPos, float yPos, float zPos)
+    {
+        // Gets the lower right corner of the block
+        int x = Mathf.FloorToInt(xPos);
+        int y = Mathf.FloorToInt(yPos);
+        int z = Mathf.FloorToInt(zPos);
+
+        // Gets the chunk coordinates of that block
+        int xChunk = x / Voxel.ChunkWidth;
+        int zChunk = z / Voxel.ChunkWidth;
+
+        x -= xChunk * Voxel.ChunkWidth;
+        z -= zChunk * Voxel.ChunkWidth;
+
+        return blockTypes[chunks[xChunk, zChunk].VoxelMap[x, y, z]].isSolid;
+    }
+
     public byte GetVoxel(Vector3 position)
     {
         int yPos = Mathf.FloorToInt(position.y);
@@ -160,7 +177,7 @@ public sealed class World : MonoBehaviour
         // Second pass
         if (voxel == GetBlockIdByName("Stone"))
         {
-            foreach (Lode lode in biomes.lodes)
+            foreach (Vein lode in biomes.veins)
             {
                 if (yPos > lode.height.x && yPos < lode.height.y)
                 {

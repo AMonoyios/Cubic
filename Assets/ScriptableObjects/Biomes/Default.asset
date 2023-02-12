@@ -14,24 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   biomeName: Default
   solidGroundHeight: 42
-  terrainHeight: 42
+  terrainHeight: 55
   terrainScale: 0.25
-  lodes:
-  - nodeName: Dirt
-    blockID: 2
-    height: {x: 1, y: 255}
-    scale: 0.125
-    threshold: 0.5
-    noiseOffset: 0
-  - nodeName: Gravel
-    blockID: 9
-    height: {x: 40, y: 60}
-    scale: 0.25
-    threshold: 0.6
-    noiseOffset: 500
-  - nodeName: Coal
-    blockID: 4
-    height: {x: 40, y: 128}
-    scale: 0.25
-    threshold: 0.6
-    noiseOffset: 250
+  veins: []
