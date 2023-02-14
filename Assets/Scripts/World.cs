@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using NaughtyAttributes;
 
-public sealed class World : MonoBehaviour
+public sealed class World : Singleton<World>
 {
     [SerializeField]
     private Player player;
@@ -26,12 +26,12 @@ public sealed class World : MonoBehaviour
 
     [SerializeField]
     private BlockType[] blockTypes;
-    public BlockType[] GetBlockType { get { return blockTypes; } }
+    public BlockType[] GetBlockTypes { get { return blockTypes; } }
 
     private readonly Chunk[,] chunks = new Chunk[Voxel.WorldSizeInChunks, Voxel.WorldSizeInChunks];
 
     private readonly List<ChunkCoords> activeChunks = new();
-    public int GetActiveChunksCount { get { return activeChunks.Count; } }
+    public int GetEnabledActiveChunksCount { get; private set; }
     private ChunkCoords playerCurrentChunkCoords;
     public ChunkCoords GetPlayerCurrentChunkCoords { get { return playerCurrentChunkCoords; } }
     private ChunkCoords playerLastChunkCoords;
@@ -55,10 +55,7 @@ public sealed class World : MonoBehaviour
 
         spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight - 50.0f, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
 
-        System.DateTime startTime = System.DateTime.Now;
         GenerateWorld();
-        System.DateTime endTime = System.DateTime.Now;
-        Debug.Log($"Generation took: {endTime.Subtract(startTime).Milliseconds} milliseconds");
 
         playerLastChunkCoords = GetChunkCoordsFromVector3(player.transform.position);
     }
@@ -68,6 +65,20 @@ public sealed class World : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F3))
         {
             debugScreen.SetActive(!debugScreen.activeSelf);
+        }
+
+        // HACK: Updates the active and enabled chunks count whenever a new chunk is loaded
+        if (GetChunksToCreateCount != 0)
+        {
+            int count = 1;
+            foreach (Transform chunk in transform)
+            {
+                if (chunk.gameObject.activeInHierarchy)
+                {
+                    count++;
+                }
+            }
+            GetEnabledActiveChunksCount = count;
         }
     }
 
@@ -92,7 +103,7 @@ public sealed class World : MonoBehaviour
         {
             for (int z = (Voxel.WorldSizeInChunks / 2) - Voxel.ViewDistanceInChunks; z < (Voxel.WorldSizeInChunks / 2) + Voxel.ViewDistanceInChunks; z++)
             {
-                chunks[x, z] = new Chunk(new(x, z), this, true);
+                chunks[x, z] = new Chunk(new(x, z), true);
                 activeChunks.Add(new(x, z));
             }
         }
@@ -141,7 +152,7 @@ public sealed class World : MonoBehaviour
                     // Chunk is within the world but it is not generated yet 
                     if (chunks[x, z] == null)
                     {
-                        chunks[x, z] = new Chunk(new ChunkCoords(x, z), this, false);
+                        chunks[x, z] = new Chunk(new ChunkCoords(x, z), false);
                         chunksToCreate.Add(new(x, z));
                     }
                     else if (!chunks[x, z].IsActive)
@@ -226,13 +237,13 @@ public sealed class World : MonoBehaviour
         // Second pass
         if (voxel == GetBlockIdByName("Stone"))
         {
-            foreach (Vein lode in biome.veins)
+            foreach (Vein vein in biome.veins)
             {
-                if (yPos > lode.height.x && yPos < lode.height.y)
+                if (yPos > vein.height.x && yPos < vein.height.y)
                 {
-                    if (Noise.Get3DPerlin(position, lode.noiseOffset, lode.scale, lode.threshold))
+                    if (Noise.Get3DPerlin(position, vein.noiseOffset, vein.scale, vein.threshold))
                     {
-                        voxel = lode.blockID;
+                        voxel = vein.blockID;
                     }
                 }
             }

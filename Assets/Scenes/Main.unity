@@ -168,7 +168,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b06de74c0fc075c49a571fa87492c1da, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  world: {fileID: 1335757325}
   gravity: -9.807
   mouseSensitivity: 4.75
   playerWidth: 0.6
@@ -757,7 +756,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5041d24b5705073468b01050e4552986, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  player: {fileID: 114576155}
+  player: {fileID: 114576156}
   seed: 
   biome: {fileID: 11400000, guid: 6eb051512e1e3f044b7296286067efa8, type: 2}
   blocksMaterial: {fileID: 2100000, guid: 7e425ddeb3e144b4eb456cf8d98339c9, type: 2}
@@ -1009,7 +1008,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 779006502369af745bd30d6f3675541e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  world: {fileID: 1335757325}
   leftText: {fileID: 775745790}
   rightText: {fileID: 837693823}
 --- !u!114 &1357634870
