@@ -6,6 +6,8 @@ using NaughtyAttributes;
 public sealed class Player : MonoBehaviour
 {
     new private Transform camera;
+    private Vector3 cameraStandingPosition;
+    private Vector3 cameraCrouchingPosition;
 
     [SerializeField]
     private float gravity = -9.807f;
@@ -22,9 +24,13 @@ public sealed class Player : MonoBehaviour
     private float playerWidth = 0.6f;
     [SerializeField]
     private float playerHeight = 1.8f;
+    private float playerStandingHeight;
+    private float playerCrouchHeight;
 
     [HorizontalLine]
 
+    [SerializeField]
+    private float crouchSpeed = 1.31f;
     [SerializeField]
     private float walkSpeed = 4.317f;
     [SerializeField]
@@ -34,7 +40,10 @@ public sealed class Player : MonoBehaviour
 
     private bool jumpRequest;
     private bool isGrounded;
-    private bool isRunning;
+    public bool IsCrouching { get; private set; }
+    public bool IsRunning { get; private set; }
+    public bool IsJumping { get { return verticalMomentum > 0.0f && !isGrounded; } }
+    public bool IsFalling { get { return verticalMomentum < 0.0f && !isGrounded; } }
 
     private float horizontal;
     private float vertical;
@@ -46,6 +55,14 @@ public sealed class Player : MonoBehaviour
     private void Start()
     {
         camera = Camera.main.transform;
+
+        cameraStandingPosition = new(0.0f, playerHeight, 0.0f);
+        cameraCrouchingPosition = new(0.0f, playerHeight - (playerHeight / 8.0f), 0.0f);
+
+        playerStandingHeight = playerHeight;
+        playerCrouchHeight = playerHeight - (playerHeight / 8.0f);
+
+        camera.localPosition = cameraStandingPosition;
     }
 
     private void Update()
@@ -62,6 +79,15 @@ public sealed class Player : MonoBehaviour
             Jump();
         }
 
+        if (IsCrouching)
+        {
+            Crouch();
+        }
+        else
+        {
+            StandUp();
+        }
+
         transform.Rotate(mouseHorizontal * (mouseSensitivity * Vector3.up));
         camera.Rotate(mouseSensitivity * (-mouseVertical * Vector3.right));
         transform.Translate(velocity, Space.World);
@@ -74,13 +100,23 @@ public sealed class Player : MonoBehaviour
         mouseHorizontal = Input.GetAxis("Mouse X");
         mouseVertical = Input.GetAxis("Mouse Y");
 
+        if (Input.GetButtonDown("Crouch"))
+        {
+            IsCrouching = true;
+            IsRunning = false;
+        }
+        if (Input.GetButtonUp("Crouch"))
+        {
+            IsCrouching = false;
+        }
         if (Input.GetButtonDown("Run"))
         {
-            isRunning = true;
+            IsRunning = true;
+            IsCrouching = false;
         }
         if (Input.GetButtonUp("Run"))
         {
-            isRunning = false;
+            IsRunning = false;
         }
 
         if (isGrounded && Input.GetButtonDown("Jump"))
@@ -96,6 +132,18 @@ public sealed class Player : MonoBehaviour
         jumpRequest = false;
     }
 
+    private void Crouch()
+    {
+        camera.localPosition = cameraCrouchingPosition;
+        playerHeight = playerCrouchHeight;
+    }
+
+    private void StandUp()
+    {
+        camera.localPosition = cameraStandingPosition;
+        playerHeight = playerStandingHeight;
+    }
+
     private void CalculateVelocity()
     {
         if (verticalMomentum > gravity)
@@ -103,13 +151,20 @@ public sealed class Player : MonoBehaviour
             verticalMomentum += Time.fixedDeltaTime * gravity * acceleration;
         }
 
-        if (isRunning)
+        if (IsRunning)
         {
             velocity = runSpeed * Time.fixedDeltaTime * ((transform.forward * vertical) + (transform.right * horizontal));
         }
         else
         {
-            velocity = walkSpeed * Time.fixedDeltaTime * ((transform.forward * vertical) + (transform.right * horizontal));
+            if (IsCrouching)
+            {
+                velocity = crouchSpeed * Time.fixedDeltaTime * ((transform.forward * vertical) + (transform.right * horizontal));
+            }
+            else
+            {
+                velocity = walkSpeed * Time.fixedDeltaTime * ((transform.forward * vertical) + (transform.right * horizontal));
+            }
         }
 
         velocity += Time.fixedDeltaTime * verticalMomentum * Vector3.up;

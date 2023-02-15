@@ -14,6 +14,8 @@ public class DebugScreen : MonoBehaviour
     private int halfWorldSizeInVoxels;
     private int halfWorldSizeInChunks;
 
+    private const uint decimalPrecision = 4;
+
     private void Start()
     {
         halfWorldSizeInVoxels = Voxel.WorldSizeInVoxels / 2;
@@ -23,8 +25,8 @@ public class DebugScreen : MonoBehaviour
     private void Update()
     {
         leftText.text = $"Cubic {Application.version} \n" +
-                        $"{frameRate} fps \n" +
-                        $"Local @ {Round(Time.deltaTime, 4)} ms ticks \n" +
+                        $"{Round(frameRate, decimalPrecision)} fps \n" +
+                        $"Local @ {Round(Time.deltaTime, decimalPrecision)} ms ticks \n" +
                         "\n" +
                         $"C: {World.Instance.GetChunksToCreateCount}/{World.Instance.GetEnabledActiveChunksCount} \n" +
                         "\n" +
@@ -32,6 +34,9 @@ public class DebugScreen : MonoBehaviour
                         $"Block: {BlockPosition} \n" +
                         $"Chunk: {ChunkCoords} \n" +
                         $"Facing: {FacingDirection} \n" +
+                        "\n" +
+                        $"Player: {PlayerMovement} \n" +
+                        "\n" +
                         $"Light: {15} \n" +
                         $"Biome: {World.Instance.GetBiome.biomeName}";
 
@@ -47,7 +52,7 @@ public class DebugScreen : MonoBehaviour
 
         if (timer > 1f)
         {
-            frameRate = (int)(1f / Time.unscaledDeltaTime);
+            frameRate = 1.0f / Time.unscaledDeltaTime;
             timer = 0;
         }
         else
@@ -60,7 +65,9 @@ public class DebugScreen : MonoBehaviour
     {
         get
         {
-            return $"{Round(World.Instance.GetPlayer.transform.position.x - halfWorldSizeInVoxels, 4)} / {Round(World.Instance.GetPlayer.transform.position.y - halfWorldSizeInVoxels, 4)} / {Round(World.Instance.GetPlayer.transform.position.z - halfWorldSizeInVoxels, 4)}";
+            return $"{Round(World.Instance.GetPlayer.transform.position.x - halfWorldSizeInVoxels, decimalPrecision)} / " +
+                $"{Round(Camera.main.transform.position.y, decimalPrecision)} / " +
+                $"{Round(World.Instance.GetPlayer.transform.position.z - halfWorldSizeInVoxels, decimalPrecision)}";
         }
     }
 
@@ -68,7 +75,9 @@ public class DebugScreen : MonoBehaviour
     {
         get
         {
-            return $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.x) - halfWorldSizeInVoxels} / {Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.y)} / {Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.z) - halfWorldSizeInVoxels}";
+            return $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.x) - halfWorldSizeInVoxels} / " +
+                $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.y)} / " +
+                $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.z) - halfWorldSizeInVoxels}";
         }
     }
 
@@ -76,7 +85,8 @@ public class DebugScreen : MonoBehaviour
     {
         get
         {
-            return $"{World.Instance.GetPlayerCurrentChunkCoords.X - halfWorldSizeInChunks} / {World.Instance.GetPlayerCurrentChunkCoords.Z - halfWorldSizeInChunks}";
+            return $"{World.Instance.GetPlayerCurrentChunkCoords.X - halfWorldSizeInChunks} / " +
+                $"{World.Instance.GetPlayerCurrentChunkCoords.Z - halfWorldSizeInChunks}";
         }
     }
 
@@ -133,12 +143,26 @@ public class DebugScreen : MonoBehaviour
                 direction = "Unknown";
             }
 
-            direction += $"({Round(rotation, 2)} / {Round(World.Instance.GetPlayer.transform.rotation.eulerAngles.z, 2)}";
+            direction += $" ({Round(rotation, decimalPrecision)} / {Round(Camera.main.transform.rotation.eulerAngles.x, decimalPrecision)})";
 
             return direction;
         }
     }
 
+    private string PlayerMovement
+    {
+        get
+        {
+            string movementStatus = "";
+            movementStatus += World.Instance.GetPlayer.IsRunning ? "Running / " : "Walking / ";
+            movementStatus += World.Instance.GetPlayer.IsCrouching ? "Crouching / " : "Standing / ";
+            movementStatus += World.Instance.GetPlayer.IsFalling ? "Falling / " : "Stable / ";
+            movementStatus += World.Instance.GetPlayer.IsJumping ? "Jumping" : "Grounded";
+            return movementStatus;
+        }
+    }
+
+    //TODO: memory usage not implemented yet
     private string CurrentMemoryUsage
     {
         get
@@ -152,9 +176,9 @@ public class DebugScreen : MonoBehaviour
         }
     }
 
-    private float Round(float value, int digits)
+    private float Round(float value, uint digits)
     {
-        float mult = Mathf.Pow(10.0f, (float)digits);
+        float mult = Mathf.Pow(10.0f, digits);
         return Mathf.Round(value * mult) / mult;
     }
 }
