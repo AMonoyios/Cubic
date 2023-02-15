@@ -6,8 +6,8 @@ using NaughtyAttributes;
 public sealed class World : Singleton<World>
 {
     [SerializeField]
-    private Player player;
-    public Player GetPlayer { get { return player; } }
+    private GameObject player;
+    public Player GetPlayer { get; private set; }
     private Vector3 spawnPosition;
 
     [HorizontalLine]
@@ -53,11 +53,9 @@ public sealed class World : Singleton<World>
         }
         Random.InitState(seed.GetHashCode());
 
-        spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight - 50.0f, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
-
         GenerateWorld();
 
-        playerLastChunkCoords = GetChunkCoordsFromVector3(player.transform.position);
+        SpawnPlayer();
     }
 
     private void Update()
@@ -84,7 +82,7 @@ public sealed class World : Singleton<World>
 
     private void FixedUpdate()
     {
-        playerCurrentChunkCoords = GetChunkCoordsFromVector3(player.transform.position);
+        playerCurrentChunkCoords = GetChunkCoordsFromVector3(GetPlayer.transform.position);
 
         if (!playerCurrentChunkCoords.Equals(playerLastChunkCoords))
         {
@@ -107,8 +105,15 @@ public sealed class World : Singleton<World>
                 activeChunks.Add(new(x, z));
             }
         }
+    }
 
-        player.transform.position = spawnPosition;
+    private void SpawnPlayer()
+    {
+        spawnPosition = new(Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f, Voxel.ChunkHeight - 50.0f, Voxel.WorldSizeInChunks * Voxel.ChunkWidth / 2.0f);
+
+        GetPlayer = Instantiate(player, spawnPosition, Quaternion.identity).GetComponent<Player>();
+
+        playerLastChunkCoords = GetChunkCoordsFromVector3(GetPlayer.transform.position);
     }
 
     private IEnumerator CreateChunks()
@@ -136,7 +141,7 @@ public sealed class World : Singleton<World>
 
     private void UpdateViewDistance()
     {
-        ChunkCoords coords = GetChunkCoordsFromVector3(player.transform.position);
+        ChunkCoords coords = GetChunkCoordsFromVector3(GetPlayer.transform.position);
         playerLastChunkCoords = playerCurrentChunkCoords;
 
         // list of all active chunks on screen

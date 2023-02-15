@@ -5,6 +5,12 @@ using NaughtyAttributes;
 
 public sealed class Player : MonoBehaviour
 {
+    [SerializeField]
+    private GameObject highlightBlock;
+    private GameObject highlight;
+
+    [HorizontalLine]
+
     new private Transform camera;
     private Vector3 cameraStandingPosition;
     private Vector3 cameraCrouchingPosition;
@@ -63,6 +69,9 @@ public sealed class Player : MonoBehaviour
         playerCrouchHeight = playerHeight - (playerHeight / 8.0f);
 
         camera.localPosition = cameraStandingPosition;
+
+        highlight = Instantiate(highlightBlock, transform.position, Quaternion.identity);
+        highlight.SetActive(true);
     }
 
     private void Update()
