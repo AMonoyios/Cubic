@@ -1,98 +1,185 @@
 using UnityEngine;
 using TMPro;
+using System.Diagnostics;
+using NaughtyAttributes;
 
-public class DebugScreen : MonoBehaviour
+public sealed class DebugScreen : MonoBehaviour
 {
-    [SerializeField]
-    private TextMeshProUGUI leftText;
-    [SerializeField]
-    private TextMeshProUGUI rightText;
+    [SerializeField, Required]
+    private TextMeshProUGUI performaceGUI;
+    [SerializeField, Required]
+    private TextMeshProUGUI playerGUI;
+    [SerializeField, Required]
+    private TextMeshProUGUI specsGUI;
 
     private float frameRate;
+    private float minFrameRate;
+    private float maxFrameRate;
     private float timer;
+    private float minTimer;
+    private float maxTimer;
 
-    private int halfWorldSizeInVoxels;
-    private int halfWorldSizeInChunks;
+    private string _applicationVersion;
+    private string _unityVersion;
+    private string _operatingSystem;
+    private int _systemMemorySize;
+    private string _processorType;
+    private int _processorCount;
+    private string _graphicsDeviceName;
+    private string _graphicsDeviceVersion;
+
+    private int _halfWorldSizeInVoxels;
+    private int _halfWorldSizeInChunks;
 
     private const uint decimalPrecision = 4;
 
     private void Start()
     {
-        halfWorldSizeInVoxels = Voxel.WorldSizeInVoxels / 2;
-        halfWorldSizeInChunks = Voxel.WorldSizeInChunks / 2;
+        minFrameRate = float.MaxValue;
+        maxFrameRate = float.MinValue;
+        minTimer = float.MaxValue;
+        maxTimer = float.MinValue;
+
+        _applicationVersion = Application.version;
+        _unityVersion = Application.unityVersion;
+        _operatingSystem = SystemInfo.operatingSystem;
+        _systemMemorySize = SystemInfo.systemMemorySize;
+        _processorCount = SystemInfo.processorCount;
+        _processorType = SystemInfo.processorType;
+        _graphicsDeviceName = SystemInfo.graphicsDeviceName;
+        _graphicsDeviceVersion = SystemInfo.graphicsDeviceVersion;
+
+        _halfWorldSizeInVoxels = Voxel.WorldSizeInVoxels / 2;
+        _halfWorldSizeInChunks = Voxel.WorldSizeInChunks / 2;
+
+        EventsManager.Instance.OnUpdatePerformanceDebugScreenUI += UpdatePerformanceGUIDebugText;
+        EventsManager.Instance.OnUpdatePlayerDebugScreenUI += UpdatePlayerGUIDebugText;
+        EventsManager.Instance.OnUpdateSpecsDebugScreenUI += UpdateSpecsGUIDebugText;
+
+        EventsManager.Instance.UpdateDebugScreenUI(specsGUIArea: true);
+    }
+
+    private void Awake()
+    {
+        EventsManager.Instance.UpdateDebugScreenUI(performanceGUIArea: true, playerGUIArea: true, specsGUIArea: true);
     }
 
     private void Update()
     {
-        leftText.text = $"Cubic {Application.version} \n" +
-                        $"{Round(frameRate, decimalPrecision)} fps \n" +
-                        $"Local @ {Round(Time.deltaTime, decimalPrecision)} ms ticks \n" +
-                        "\n" +
-                        $"C: {World.Instance.GetChunksToCreateCount}/{World.Instance.GetEnabledActiveChunksCount} \n" +
-                        "\n" +
-                        $"XYZ: {PlayerPosition} \n" +
-                        $"Block: {BlockPosition} \n" +
-                        $"Chunk: {ChunkCoords} \n" +
-                        $"Facing: {FacingDirection} \n" +
-                        "\n" +
-                        $"Player: {PlayerMovement} \n" +
-                        "\n" +
-                        $"Light: {15} \n" +
-                        $"Biome: {World.Instance.GetBiome.biomeName}";
-
-        rightText.text = $"Unity: {Application.unityVersion} \n" +
-                        $"OS: {SystemInfo.operatingSystem} \n" +
-                        "\n" +
-                        $"Mem: {CurrentMemoryUsage}/{SystemInfo.systemMemorySize} \n" +
-                        $"CPU: {SystemInfo.processorCount}x {SystemInfo.processorType} \n" +
-                        "\n" +
-                        $"Display: {Screen.currentResolution} \n" +
-                        $"GPU: {SystemInfo.graphicsDeviceName} \n" +
-                        $"{SystemInfo.graphicsDeviceVersion} \n" +
-                        "\n" +
-                        FacingBlockID;
+        EventsManager.Instance.UpdateDebugScreenUI(performanceGUIArea: true);
 
         if (timer > 1f)
         {
             frameRate = 1.0f / Time.unscaledDeltaTime;
+
+            if (frameRate > maxFrameRate)
+            {
+                maxFrameRate = frameRate;
+            }
+            if (frameRate < minFrameRate)
+            {
+                minFrameRate = frameRate;
+            }
+
             timer = 0;
         }
         else
         {
             timer += Time.deltaTime;
+
+            if (timer > maxTimer)
+            {
+                maxTimer = timer;
+            }
+            if (timer < minTimer)
+            {
+                minTimer = timer;
+            }
         }
     }
 
-    private string PlayerPosition
+    private void UpdatePerformanceGUIDebugText()
+    {
+        performaceGUI.text = $"Cubic {_applicationVersion} \n" +
+                             $"FPS: {Round(frameRate, decimalPrecision / 2)} / {Round(minFrameRate, decimalPrecision / 2)} / {Round(maxFrameRate, decimalPrecision / 2)} \n" +
+                             $"Delta: {Round(Time.deltaTime, decimalPrecision)} / {Round(minTimer, decimalPrecision)} / {Round(maxTimer, decimalPrecision)}";
+    }
+
+    private void UpdatePlayerGUIDebugText()
+    {
+        playerGUI.text = $"C: {GetChunksToCreateCount}/{GetEnabledActiveChunksCount} \n" +
+                         "\n" +
+                         $"XYZ: {GetPlayerPosition} \n" +
+                         $"Block: {GetBlockPosition} \n" +
+                         $"Chunk: {GetChunkCoords} \n" +
+                         $"Facing: {GetFacingDirection} \n" +
+                         $"{GetSelectedBlockName} \n" +
+                         "\n" +
+                         $"Player: {GetPlayerMovementStatus} \n" +
+                         "\n" +
+                         $"Light: {GetBlockLightLevel} \n" +
+                         $"Biome: {GetBiomeName}";
+    }
+
+    private void UpdateSpecsGUIDebugText()
+    {
+        specsGUI.text = $"Unity: {_unityVersion} \n" +
+                        $"OS: {_operatingSystem} \n" +
+                        "\n" +
+                        $"Mem: {GetCurrentMemoryUsage}/{_systemMemorySize} \n" +
+                        $"CPU: {_processorCount}x {_processorType} \n" +
+                        "\n" +
+                        $"Display: {GetCurrentResolution} \n" +
+                        $"GPU: {_graphicsDeviceName} \n" +
+                        $"{_graphicsDeviceVersion} \n";
+    }
+
+    private int GetChunksToCreateCount
     {
         get
         {
-            return $"{Round(World.Instance.GetPlayer.transform.position.x - halfWorldSizeInVoxels, decimalPrecision)} / " +
-                $"{Round(Camera.main.transform.position.y, decimalPrecision)} / " +
-                $"{Round(World.Instance.GetPlayer.transform.position.z - halfWorldSizeInVoxels, decimalPrecision)}";
+            return World.Instance.GetChunksToCreateCount;
         }
     }
 
-    private string BlockPosition
+    private int GetEnabledActiveChunksCount
     {
         get
         {
-            return $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.x) - halfWorldSizeInVoxels} / " +
-                $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.y)} / " +
-                $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.z) - halfWorldSizeInVoxels}";
+            return World.Instance.GetEnabledActiveChunksCount;
         }
     }
 
-    private string ChunkCoords
+    private string GetPlayerPosition
     {
         get
         {
-            return $"{World.Instance.GetPlayerCurrentChunkCoords.X - halfWorldSizeInChunks} / " +
-                $"{World.Instance.GetPlayerCurrentChunkCoords.Z - halfWorldSizeInChunks}";
+            return $"{Round(World.Instance.GetPlayer.transform.position.x - _halfWorldSizeInVoxels, decimalPrecision)} / " +
+                   $"{Round(Camera.main.transform.position.y, decimalPrecision)} / " +
+                   $"{Round(World.Instance.GetPlayer.transform.position.z - _halfWorldSizeInVoxels, decimalPrecision)}";
         }
     }
 
-    private string FacingDirection
+    private string GetBlockPosition
+    {
+        get
+        {
+            return $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.x) - _halfWorldSizeInVoxels} / " +
+                   $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.y)} / " +
+                   $"{Mathf.FloorToInt(World.Instance.GetPlayer.transform.position.z) - _halfWorldSizeInVoxels}";
+        }
+    }
+
+    private string GetChunkCoords
+    {
+        get
+        {
+            return $"{World.Instance.GetPlayerCurrentChunkCoords.X - _halfWorldSizeInChunks} / " +
+                   $"{World.Instance.GetPlayerCurrentChunkCoords.Z - _halfWorldSizeInChunks}";
+        }
+    }
+
+    private string GetFacingDirection
     {
         get
         {
@@ -151,7 +238,7 @@ public class DebugScreen : MonoBehaviour
         }
     }
 
-    private string PlayerMovement
+    private string GetPlayerMovementStatus
     {
         get
         {
@@ -164,27 +251,51 @@ public class DebugScreen : MonoBehaviour
         }
     }
 
-    //TODO: memory usage not implemented yet
-    private string CurrentMemoryUsage
+    private int GetBlockLightLevel
     {
         get
         {
-            return "TODO";
-            // Process proc = Process.GetCurrentProcess();
-            // float memory = proc.PrivateMemorySize64 / (1024 * 1024);
-            // proc.Dispose();
-
-            // return memory.ToString();
+            return 15;
         }
     }
 
-    private string FacingBlockID
+    private string GetBiomeName
+    {
+        get
+        {
+            return World.Instance.GetBiome.biomeName;
+        }
+    }
+
+    private string GetCurrentMemoryUsage
+    {
+        get
+        {
+            Process proc = Process.GetCurrentProcess();
+            float memory = proc.PrivateMemorySize64 / (1024 * 1024);
+            proc.Dispose();
+
+            return memory.ToString();
+        }
+    }
+
+    private string GetCurrentResolution
+    {
+        get
+        {
+            return Screen.currentResolution.ToString();
+        }
+    }
+
+    private string GetSelectedBlockName
     {
         get
         {
             return World.Instance.GetPlayer.SelectedBlockName;
         }
     }
+
+    // Helper function
     private float Round(float value, uint digits)
     {
         float mult = Mathf.Pow(10.0f, digits);

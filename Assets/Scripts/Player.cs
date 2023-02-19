@@ -8,8 +8,6 @@ public sealed class Player : MonoBehaviour
     [SerializeField, Required]
     private GameObject highlightBlock;
     private GameObject highlight;
-    // [SerializeField, Required]
-    // private GameObject placeBlock;
     private Vector3 placeBlockPosition;
     [SerializeField, Range(0.01f, 1.0f)]
     private float checkIncrement = 0.1f;
@@ -61,6 +59,7 @@ public sealed class Player : MonoBehaviour
 
     private float horizontal;
     private float vertical;
+    private Vector3 lastMouseCoordinate = Vector3.zero;
     private float mouseHorizontal;
     private float mouseVertical;
     private Vector3 velocity;
@@ -81,11 +80,10 @@ public sealed class Player : MonoBehaviour
         highlight = Instantiate(highlightBlock, transform.position, Quaternion.identity);
         highlight.SetActive(false);
 
-        // place = Instantiate(placeBlock, transform.position, Quaternion.identity);
-        // place.SetActive(false);
-
         Cursor.lockState = CursorLockMode.Locked;
         SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
+
+        EventsManager.Instance.UpdateSelectedBlockUI();
     }
 
     private void Update()
@@ -120,7 +118,23 @@ public sealed class Player : MonoBehaviour
     private void GetPlayerInputs()
     {
         horizontal = Input.GetAxis("Horizontal");
+        if (horizontal != 0)
+        {
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
+        }
         vertical = Input.GetAxis("Vertical");
+        if (vertical != 0)
+        {
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
+        }
+
+        Vector3 mouseDelta = Input.mousePosition - lastMouseCoordinate;
+        if (mouseDelta.x != 0 || mouseDelta.y != 0)
+        {
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
+        }
+        lastMouseCoordinate = Input.mousePosition;
+
         mouseHorizontal = Input.GetAxis("Mouse X");
         mouseVertical = Input.GetAxis("Mouse Y");
 
@@ -128,24 +142,34 @@ public sealed class Player : MonoBehaviour
         {
             IsCrouching = true;
             IsRunning = false;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
         }
         if (Input.GetButtonUp("Crouch"))
         {
             IsCrouching = false;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
         }
         if (Input.GetButtonDown("Run"))
         {
             IsRunning = true;
             IsCrouching = false;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
         }
         if (Input.GetButtonUp("Run"))
         {
             IsRunning = false;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
         }
 
         if (isGrounded && Input.GetButtonDown("Jump"))
         {
             jumpRequest = true;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
         }
 
         float scroll = Input.GetAxis("Mouse ScrollWheel");
@@ -170,6 +194,9 @@ public sealed class Player : MonoBehaviour
             }
 
             SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
+
+            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
+            EventsManager.Instance.UpdateSelectedBlockUI();
         }
 
         if (highlight.activeSelf)
@@ -208,7 +235,6 @@ public sealed class Player : MonoBehaviour
                 placeBlockPosition = lastPosition;
 
                 highlight.SetActive(true);
-                // place.SetActive(true);
 
                 return;
             }
@@ -223,7 +249,6 @@ public sealed class Player : MonoBehaviour
         }
 
         highlight.SetActive(false);
-        // place.SetActive(false);
     }
     private void Jump()
     {

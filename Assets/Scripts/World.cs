@@ -77,6 +77,8 @@ public sealed class World : Singleton<World>
                 }
             }
             GetEnabledActiveChunksCount = count;
+
+            EventsManager.Instance.UpdateDebugScreenUI();
         }
     }
 
@@ -125,6 +127,8 @@ public sealed class World : Singleton<World>
             chunks[chunksToCreate[0].X, chunksToCreate[0].Z].Init();
             chunksToCreate.RemoveAt(0);
 
+            EventsManager.Instance.UpdateDebugScreenUI();
+
             yield return null;
         }
 
@@ -167,6 +171,8 @@ public sealed class World : Singleton<World>
                     {
                         chunks[x, z] = new Chunk(new ChunkCoords(x, z), false);
                         chunksToCreate.Add(new(x, z));
+
+                        EventsManager.Instance.UpdateDebugScreenUI();
                     }
                     else if (!chunks[x, z].IsActive)
                     {
