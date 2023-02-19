@@ -165,9 +165,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   highlightBlock: {fileID: 1259027571333352480, guid: 44b15a4cd1ec47f48a1759a20727a23f,
     type: 3}
+  placeBlock: {fileID: 1259027571333352480, guid: fa92a43a63ea0d340adfdbe58b079066,
+    type: 3}
+  checkIncrement: 0.25
+  reach: 6
   gravity: -9.807
   mouseSensitivity: 4.75
-  playerWidth: 0.6
+  playerWidth: 0.4
   playerHeight: 1.8
   crouchSpeed: 1.31
   walkSpeed: 4.317

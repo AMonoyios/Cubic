@@ -48,7 +48,9 @@ public class DebugScreen : MonoBehaviour
                         "\n" +
                         $"Display: {Screen.currentResolution} \n" +
                         $"GPU: {SystemInfo.graphicsDeviceName} \n" +
-                        $"{SystemInfo.graphicsDeviceVersion}";
+                        $"{SystemInfo.graphicsDeviceVersion} \n" +
+                        "\n" +
+                        FacingBlockID;
 
         if (timer > 1f)
         {
@@ -176,6 +178,13 @@ public class DebugScreen : MonoBehaviour
         }
     }
 
+    private string FacingBlockID
+    {
+        get
+        {
+            return World.Instance.GetPlayer.SelectedBlockName;
+        }
+    }
     private float Round(float value, uint digits)
     {
         float mult = Mathf.Pow(10.0f, digits);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public static class Voxel
@@ -50,7 +51,7 @@ public static class Voxel
         {1, 2, 5, 6}  // Right
     };
 
-    public static readonly Vector2[] UVs = new Vector2[4]
+    public static readonly Vector2[] UV = new Vector2[4]
     {
         new(0.0f, 0.0f),
         new(0.0f, 1.0f),

@@ -14,7 +14,7 @@ public sealed class World : Singleton<World>
 
     [SerializeField]
     private string seed;
-    [SerializeField]
+    [SerializeField, Expandable]
     private BiomeProperties biome;
     public BiomeProperties GetBiome { get { return biome; } }
 
@@ -137,6 +137,14 @@ public sealed class World : Singleton<World>
         int z = Mathf.FloorToInt(position.z / Voxel.ChunkWidth);
 
         return new(x, z);
+    }
+
+    public Chunk GetChunkFromVector3(Vector3 position)
+    {
+        int x = Mathf.FloorToInt(position.x / Voxel.ChunkWidth);
+        int z = Mathf.FloorToInt(position.z / Voxel.ChunkWidth);
+
+        return chunks[x, z];
     }
 
     private void UpdateViewDistance()

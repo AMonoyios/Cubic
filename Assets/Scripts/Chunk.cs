@@ -48,8 +48,7 @@ public sealed class Chunk
         chunk.name = $"Chunk {coords.X}, {coords.Z}";
 
         PopulateVoxelMap();
-        CalculateMeshData();
-        CreateMesh();
+        UpdateChunk();
     }
 
     private void PopulateVoxelMap()
@@ -68,8 +67,10 @@ public sealed class Chunk
         isVoxelMapPopulated = true;
     }
 
-    private void CalculateMeshData()
+    private void UpdateChunk()
     {
+        ClearMeshData();
+
         for (int y = 0; y < Voxel.ChunkHeight; y++)
         {
             for (int x = 0; x < Voxel.ChunkWidth; x++)
@@ -78,11 +79,21 @@ public sealed class Chunk
                 {
                     if (World.Instance.GetBlockTypes[VoxelMap[x, y, z]].isSolid)
                     {
-                        AddVoxelToChunk(new(x, y, z));
+                        UpdateMeshData(new(x, y, z));
                     }
                 }
             }
         }
+
+        ApplyMesh();
+    }
+
+    private void ClearMeshData()
+    {
+        vertexIndex = 0;
+        vertices.Clear();
+        triangles.Clear();
+        uvs.Clear();
     }
 
     public bool IsActive
@@ -114,6 +125,37 @@ public sealed class Chunk
         return x >= 0 && x <= Voxel.ChunkWidth - 1 && y >= 0 && y <= Voxel.ChunkHeight - 1 && z >= 0 && z <= Voxel.ChunkWidth - 1;
     }
 
+    public void EditVoxel(Vector3 position, byte newBlockID)
+    {
+        int x = Mathf.FloorToInt(position.x);
+        int y = Mathf.FloorToInt(position.y);
+        int z = Mathf.FloorToInt(position.z);
+
+        x -= Mathf.FloorToInt(chunk.transform.position.x);
+        z -= Mathf.FloorToInt(chunk.transform.position.z);
+
+        VoxelMap[x, y, z] = newBlockID;
+
+        UpdateSurroundingVoxels(x, y, z);
+        UpdateChunk();
+    }
+
+    private void UpdateSurroundingVoxels(int x, int y, int z)
+    {
+        Vector3 voxel = new(x, y, z);
+
+        // Finds the side of the voxel that is outside the current chunk and then update the chunk for the chunk next to it as well.
+        for (int i = 0; i < 6; i++)
+        {
+            Vector3 currentVoxel = voxel + Voxel.faceChecks[i];
+
+            if (!IsVoxelInChunk((int)currentVoxel.x, (int)currentVoxel.y, (int)currentVoxel.z))
+            {
+                World.Instance.GetChunkFromVector3(currentVoxel + Position).UpdateChunk();
+            }
+        }
+    }
+
     private bool CheckVoxel(Vector3 position)
     {
         int x = Mathf.FloorToInt(position.x);
@@ -140,7 +182,7 @@ public sealed class Chunk
         return VoxelMap[x, y, z];
     }
 
-    private void AddVoxelToChunk(Vector3 position)
+    private void UpdateMeshData(Vector3 position)
     {
         for (byte i = 0; i < 6; i++)
         {
@@ -153,7 +195,15 @@ public sealed class Chunk
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 2]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 3]]);
 
-                AddTexture(World.Instance.GetBlockTypes[blockID].GetTextureID(i));
+                float uvStartYPos = World.Instance.GetBlockTypes[blockID].GetTextureID(i) / Voxel.TextureAtlasSizeInBlocks;
+                float uvStartXPos = World.Instance.GetBlockTypes[blockID].GetTextureID(i) - (uvStartYPos * Voxel.TextureAtlasSizeInBlocks);
+                uvStartXPos *= Voxel.NormalizedBlockTextureSize;
+                uvStartYPos *= Voxel.NormalizedBlockTextureSize;
+                uvStartYPos = 1.0f - uvStartYPos - Voxel.NormalizedBlockTextureSize;
+                uvs.Add(new(uvStartXPos, uvStartYPos));
+                uvs.Add(new(uvStartXPos, uvStartYPos + Voxel.NormalizedBlockTextureSize));
+                uvs.Add(new(uvStartXPos + Voxel.NormalizedBlockTextureSize, uvStartYPos));
+                uvs.Add(new(uvStartXPos + Voxel.NormalizedBlockTextureSize, uvStartYPos + Voxel.NormalizedBlockTextureSize));
 
                 triangles.Add(vertexIndex);
                 triangles.Add(vertexIndex + 1);
@@ -167,7 +217,7 @@ public sealed class Chunk
         }
     }
 
-    private void CreateMesh()
+    private void ApplyMesh()
     {
         Mesh mesh = new()
         {
@@ -179,21 +229,5 @@ public sealed class Chunk
         mesh.RecalculateNormals();
 
         meshFilter.mesh = mesh;
-    }
-
-    private void AddTexture(int textureID)
-    {
-        float y = textureID / Voxel.TextureAtlasSizeInBlocks;
-        float x = textureID - (y * Voxel.TextureAtlasSizeInBlocks);
-
-        x *= Voxel.NormalizedBlockTextureSize;
-        y *= Voxel.NormalizedBlockTextureSize;
-
-        y = 1.0f - y - Voxel.NormalizedBlockTextureSize;
-
-        uvs.Add(new(x, y));
-        uvs.Add(new(x, y + Voxel.NormalizedBlockTextureSize));
-        uvs.Add(new(x + Voxel.NormalizedBlockTextureSize, y));
-        uvs.Add(new(x + Voxel.NormalizedBlockTextureSize, y + Voxel.NormalizedBlockTextureSize));
     }
 }

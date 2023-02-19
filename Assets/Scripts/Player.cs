@@ -5,16 +5,24 @@ using NaughtyAttributes;
 
 public sealed class Player : MonoBehaviour
 {
-    [SerializeField]
+    [SerializeField, Required]
     private GameObject highlightBlock;
     private GameObject highlight;
-
-    [HorizontalLine]
+    // [SerializeField, Required]
+    // private GameObject placeBlock;
+    private Vector3 placeBlockPosition;
+    [SerializeField, Range(0.01f, 1.0f)]
+    private float checkIncrement = 0.1f;
+    [SerializeField, MinValue(1.0f)]
+    private float reach = 4.0f;
+    public byte SelectedBlockID { get; private set; }
+    public string SelectedBlockName { get; private set; }
 
     new private Transform camera;
     private Vector3 cameraStandingPosition;
     private Vector3 cameraCrouchingPosition;
 
+    [HorizontalLine]
     [SerializeField]
     private float gravity = -9.807f;
     private const float acceleration = 2.5f;
@@ -71,12 +79,19 @@ public sealed class Player : MonoBehaviour
         camera.localPosition = cameraStandingPosition;
 
         highlight = Instantiate(highlightBlock, transform.position, Quaternion.identity);
-        highlight.SetActive(true);
+        highlight.SetActive(false);
+
+        // place = Instantiate(placeBlock, transform.position, Quaternion.identity);
+        // place.SetActive(false);
+
+        Cursor.lockState = CursorLockMode.Locked;
+        SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
     }
 
     private void Update()
     {
         GetPlayerInputs();
+        UpdateCursorBlock();
     }
 
     private void FixedUpdate()
@@ -132,8 +147,84 @@ public sealed class Player : MonoBehaviour
         {
             jumpRequest = true;
         }
+
+        float scroll = Input.GetAxis("Mouse ScrollWheel");
+        if (scroll != 0)
+        {
+            if (scroll > 0)
+            {
+                SelectedBlockID++;
+            }
+            else
+            {
+                SelectedBlockID--;
+            }
+
+            if (SelectedBlockID > (World.Instance.GetBlockTypes.Length - 1))
+            {
+                SelectedBlockID = 1;
+            }
+            if (SelectedBlockID < 1)
+            {
+                SelectedBlockID = (byte)(World.Instance.GetBlockTypes.Length - 1);
+            }
+
+            SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
+        }
+
+        if (highlight.activeSelf)
+        {
+            // Destroy the block (replace with air block)
+            if (Input.GetMouseButtonDown(0))
+            {
+                World.Instance.GetChunkFromVector3(highlight.transform.position).EditVoxel(highlight.transform.position, 0);
+            }
+
+            // Place block (replace with new selected block ID)
+            if (Input.GetMouseButtonDown(1))
+            {
+                World.Instance.GetChunkFromVector3(placeBlockPosition).EditVoxel(placeBlockPosition, SelectedBlockID);
+            }
+        }
     }
 
+    private void UpdateCursorBlock()
+    {
+        float step = checkIncrement;
+        Vector3 lastPosition = new();
+
+        while (step < reach)
+        {
+            Vector3 checkPosition = camera.position + (camera.forward * step);
+
+            if (World.Instance.CheckForVoxel(checkPosition))
+            {
+                highlight.transform.position = new
+                (
+                    x: Mathf.FloorToInt(checkPosition.x),
+                    y: Mathf.FloorToInt(checkPosition.y),
+                    z: Mathf.FloorToInt(checkPosition.z)
+                );
+                placeBlockPosition = lastPosition;
+
+                highlight.SetActive(true);
+                // place.SetActive(true);
+
+                return;
+            }
+
+            lastPosition = new
+            (
+                x: Mathf.FloorToInt(checkPosition.x),
+                y: Mathf.FloorToInt(checkPosition.y),
+                z: Mathf.FloorToInt(checkPosition.z)
+            );
+            step += checkIncrement;
+        }
+
+        highlight.SetActive(false);
+        // place.SetActive(false);
+    }
     private void Jump()
     {
         verticalMomentum = jumpForce;

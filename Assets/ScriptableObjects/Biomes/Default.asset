@@ -16,4 +16,16 @@ MonoBehaviour:
   solidGroundHeight: 42
   terrainHeight: 55
   terrainScale: 0.25
-  veins: []
+  veins:
+  - veinName: CoalVein
+    blockID: 4
+    height: {x: 25, y: 100}
+    scale: 0.183
+    threshold: 0.125
+    noiseOffset: 500
+  - veinName: GravelVein
+    blockID: 9
+    height: {x: 25, y: 166}
+    scale: 0.341
+    threshold: 0.235
+    noiseOffset: 250
