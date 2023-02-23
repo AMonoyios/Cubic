@@ -16,7 +16,9 @@ public sealed class Chunk
     private int vertexIndex;
     private readonly List<Vector3> vertices = new();
     private readonly List<int> triangles = new();
+    private readonly List<int> transparentTriangles = new();
     private readonly List<Vector2> uvs = new();
+    private readonly Material[] materials = new Material[2];
 
     public byte[,,] VoxelMap { get; } = new byte[Voxel.ChunkWidth, Voxel.ChunkHeight, Voxel.ChunkWidth];
 
@@ -40,7 +42,9 @@ public sealed class Chunk
         meshFilter = chunk.AddComponent<MeshFilter>();
         meshRenderer = chunk.AddComponent<MeshRenderer>();
 
-        meshRenderer.material = World.Instance.GetBlocksMaterial;
+        materials[0] = World.Instance.GetBlocksMaterial;
+        materials[1] = World.Instance.GetTransparentBlocksMaterial;
+        meshRenderer.materials = materials;
 
         chunk.transform.SetParent(World.Instance.transform);
 
@@ -93,6 +97,7 @@ public sealed class Chunk
         vertexIndex = 0;
         vertices.Clear();
         triangles.Clear();
+        transparentTriangles.Clear();
         uvs.Clear();
     }
 
@@ -164,10 +169,10 @@ public sealed class Chunk
 
         if (!IsVoxelInChunk(x, y, z))
         {
-            return World.Instance.CheckForVoxel(position + Position);
+            return World.Instance.CheckIfVoxelTransparent(position + Position);
         }
 
-        return World.Instance.GetBlockTypes[VoxelMap[x, y, z]].isSolid;
+        return World.Instance.GetBlockTypes[VoxelMap[x, y, z]].isTransparent;
     }
 
     public byte GetVoxelFromGlobalVector3(Vector3 position)
@@ -184,12 +189,13 @@ public sealed class Chunk
 
     private void UpdateMeshData(Vector3 position)
     {
+        byte blockID = VoxelMap[(int)position.x, (int)position.y, (int)position.z];
+        bool isVoxelTransparent = World.Instance.GetBlockTypes[blockID].isTransparent;
+
         for (byte i = 0; i < 6; i++)
         {
-            if (!CheckVoxel(position + Voxel.faceChecks[i]))
+            if (CheckVoxel(position + Voxel.faceChecks[i]))
             {
-                byte blockID = VoxelMap[(int)position.x, (int)position.y, (int)position.z];
-
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 0]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 1]]);
                 vertices.Add(position + Voxel.Verts[Voxel.Tris[i, 2]]);
@@ -205,12 +211,24 @@ public sealed class Chunk
                 uvs.Add(new(uvStartXPos + Voxel.NormalizedBlockTextureSize, uvStartYPos));
                 uvs.Add(new(uvStartXPos + Voxel.NormalizedBlockTextureSize, uvStartYPos + Voxel.NormalizedBlockTextureSize));
 
-                triangles.Add(vertexIndex);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 2);
-                triangles.Add(vertexIndex + 1);
-                triangles.Add(vertexIndex + 3);
+                if (!isVoxelTransparent)
+                {
+                    triangles.Add(vertexIndex);
+                    triangles.Add(vertexIndex + 1);
+                    triangles.Add(vertexIndex + 2);
+                    triangles.Add(vertexIndex + 2);
+                    triangles.Add(vertexIndex + 1);
+                    triangles.Add(vertexIndex + 3);
+                }
+                else
+                {
+                    transparentTriangles.Add(vertexIndex);
+                    transparentTriangles.Add(vertexIndex + 1);
+                    transparentTriangles.Add(vertexIndex + 2);
+                    transparentTriangles.Add(vertexIndex + 2);
+                    transparentTriangles.Add(vertexIndex + 1);
+                    transparentTriangles.Add(vertexIndex + 3);
+                }
 
                 vertexIndex += 4;
             }
@@ -222,9 +240,11 @@ public sealed class Chunk
         Mesh mesh = new()
         {
             vertices = vertices.ToArray(),
-            triangles = triangles.ToArray(),
+            subMeshCount = 2,
             uv = uvs.ToArray()
         };
+        mesh.SetTriangles(triangles.ToArray(), 0);
+        mesh.SetTriangles(transparentTriangles.ToArray(), 1);
 
         mesh.RecalculateNormals();
 

@@ -1,10 +1,19 @@
 using UnityEngine;
+using NaughtyAttributes;
 
 [System.Serializable]
 public sealed class BlockType
 {
     public string blockName;
     public bool isSolid;
+    public bool isTransparent;
+
+    [HorizontalLine]
+
+    [ShowAssetPreview]
+    public Sprite icon;
+
+    [HorizontalLine]
 
     // Block faces order
     // Back, Front, Top, Bottom, Left, Right

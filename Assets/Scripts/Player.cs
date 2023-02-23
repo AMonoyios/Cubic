@@ -13,8 +13,14 @@ public sealed class Player : MonoBehaviour
     private float checkIncrement = 0.1f;
     [SerializeField, MinValue(1.0f)]
     private float reach = 4.0f;
-    public byte SelectedBlockID { get; private set; }
-    public string SelectedBlockName { get; private set; }
+    public byte SelectedBlockID { get; set; }
+    public string SelectedBlockName
+    {
+        get
+        {
+            return World.Instance.GetBlockTypes[SelectedBlockID].blockName;
+        }
+    }
 
     new private Transform camera;
     private Vector3 cameraStandingPosition;
@@ -81,7 +87,6 @@ public sealed class Player : MonoBehaviour
         highlight.SetActive(false);
 
         Cursor.lockState = CursorLockMode.Locked;
-        SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
 
         EventsManager.Instance.UpdateSelectedBlockUI();
     }
@@ -170,33 +175,6 @@ public sealed class Player : MonoBehaviour
             jumpRequest = true;
 
             EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
-        }
-
-        float scroll = Input.GetAxis("Mouse ScrollWheel");
-        if (scroll != 0)
-        {
-            if (scroll > 0)
-            {
-                SelectedBlockID++;
-            }
-            else
-            {
-                SelectedBlockID--;
-            }
-
-            if (SelectedBlockID > (World.Instance.GetBlockTypes.Length - 1))
-            {
-                SelectedBlockID = 1;
-            }
-            if (SelectedBlockID < 1)
-            {
-                SelectedBlockID = (byte)(World.Instance.GetBlockTypes.Length - 1);
-            }
-
-            SelectedBlockName = World.Instance.GetBlockTypes[SelectedBlockID].blockName;
-
-            EventsManager.Instance.UpdateDebugScreenUI(playerGUIArea: true);
-            EventsManager.Instance.UpdateSelectedBlockUI();
         }
 
         if (highlight.activeSelf)

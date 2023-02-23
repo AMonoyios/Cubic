@@ -23,6 +23,9 @@ public sealed class World : Singleton<World>
     [SerializeField]
     private Material blocksMaterial;
     public Material GetBlocksMaterial { get { return blocksMaterial; } }
+    [SerializeField]
+    private Material transparentBlocksMaterial;
+    public Material GetTransparentBlocksMaterial { get { return transparentBlocksMaterial; } }
 
     [SerializeField]
     private BlockType[] blockTypes;
@@ -214,6 +217,23 @@ public sealed class World : Singleton<World>
         }
 
         return blockTypes[GetVoxel(position)].isSolid;
+    }
+
+    public bool CheckIfVoxelTransparent (Vector3 position)
+    {
+        ChunkCoords chunk = new(position);
+
+        if (!IsChunkInWorld(chunk) || position.y < 0 || position.y > Voxel.ChunkHeight)
+        {
+            return false;
+        }
+
+        if (chunks[chunk.X, chunk.Z] != null && chunks[chunk.X, chunk.Z].isVoxelMapPopulated)
+        {
+            return blockTypes[chunks[chunk.X, chunk.Z].GetVoxelFromGlobalVector3(position)].isTransparent;
+        }
+
+        return blockTypes[GetVoxel(position)].isTransparent;
     }
 
     public byte GetVoxel(Vector3 position)
